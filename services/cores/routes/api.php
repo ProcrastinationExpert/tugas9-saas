@@ -16,6 +16,7 @@ Route::group(['prefix' => 'auth'], function ($router) {
 
 Route::group(['middleware' => 'auth:api'], function ($router) {
     Route::post('posts', [PostController::class, 'store']);
+    Route::get('posts', [PostController::class, 'index']);
 });
 
 Route::group(['middleware' => 'api', 'prefix' => 'auth'], function ($router) {

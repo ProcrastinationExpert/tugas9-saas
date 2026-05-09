@@ -40,6 +40,13 @@ class PostController extends Controller
             'content' => 'required|string|max:1000',
         ]);
         
+        if(!auth()->check()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+        
         $post = Post::create([
             'user_id' => auth()->id(),
             'content' => $request->content,
