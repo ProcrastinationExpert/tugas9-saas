@@ -4,8 +4,8 @@ async function getNotifications(req, res) {
   try {
     const userId = req.user.sub;
     const [notifications] = await query(
-      "SELECT n.id, n.post_id, n.sender_id, n.is_read, n.created_at, u.username AS sender_username " +
-        "FROM notifications n JOIN users u ON n.sender_id = u.id " +
+      "SELECT n.id, n.post_id, n.sender_id, n.is_read, n.created_at, u.username AS sender_username, p.content " +
+        "FROM notifications n JOIN users u ON n.sender_id = u.id JOIN posts p ON n.post_id = p.id " +
         "WHERE n.user_id = ? ORDER BY n.created_at DESC",
       [userId],
     );
