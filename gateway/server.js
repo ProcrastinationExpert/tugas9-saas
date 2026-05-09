@@ -12,21 +12,54 @@ const notificationServiceUrl =
 
 app.use(cors());
 
+app.use((req, res, next) => {
+  console.log(`\n[REQUEST MASUK] ${req.method} ${req.originalUrl}`);
+  next();
+});
+
 app.use(
   "/api/register",
-  createProxyMiddleware({ target: coreServiceUrl, changeOrigin: true }),
+  createProxyMiddleware({
+    target: coreServiceUrl,
+    changeOrigin: true,
+    pathRewrite: { "^/": "/api/auth/register" },
+  }),
 );
+
 app.use(
   "/api/login",
-  createProxyMiddleware({ target: coreServiceUrl, changeOrigin: true }),
+  createProxyMiddleware({
+    target: coreServiceUrl,
+    changeOrigin: true,
+    pathRewrite: { "^/": "/api/auth/login" },
+  }),
 );
+
+app.use(
+  "/api/logout",
+  createProxyMiddleware({
+    target: coreServiceUrl,
+    changeOrigin: true,
+    pathRewrite: { "^/": "/api/auth/logout" },
+  }),
+);
+
 app.use(
   "/api/posts",
-  createProxyMiddleware({ target: coreServiceUrl, changeOrigin: true }),
+  createProxyMiddleware({
+    target: coreServiceUrl,
+    changeOrigin: true,
+    pathRewrite: { "^/": "/api/posts" },
+  }),
 );
+
 app.use(
   "/api/notifications",
-  createProxyMiddleware({ target: notificationServiceUrl, changeOrigin: true }),
+  createProxyMiddleware({
+    target: notificationServiceUrl,
+    changeOrigin: true,
+    pathRewrite: { "^/": "/api/notifications" },
+  }),
 );
 
 app.use((req, res) => {

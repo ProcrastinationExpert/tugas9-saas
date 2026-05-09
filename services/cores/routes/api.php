@@ -9,6 +9,13 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
+Route::get('login', function () {
+    return response()->json([
+        'success' => false,
+        'message' => 'Unauthorized. Kamu belum login atau token tidak valid.'
+    ], 401);
+})->name('login');
+
 Route::group(['prefix' => 'auth'], function ($router) {
     Route::post('register', [AuthController::class, 'register']);
     Route::post('login', [AuthController::class, 'login']);
@@ -19,7 +26,7 @@ Route::group(['middleware' => 'auth:api'], function ($router) {
     Route::get('posts', [PostController::class, 'index']);
 });
 
-Route::group(['middleware' => 'api', 'prefix' => 'auth'], function ($router) {
+Route::group(['middleware' => 'auth:api', 'prefix' => 'auth'], function ($router) {
     Route::post('logout', [AuthController::class, 'logout']);
     Route::post('refresh', [AuthController::class, 'refresh']);
     Route::post('me', [AuthController::class, 'me']);
