@@ -142,46 +142,12 @@ class PostController extends Controller
         }
 
         $post->update($request->only('content'));
-
-        $payload = json_encode([
-            'post_id'   => $post->id,
-            'sender_id' => auth()->id(),
-            'content'   => $post->content,
-        ]);
         
-        try {
-            $connection = new AMQPStreamConnection(
-                env('RABBITMQ_HOST', '127.0.0.1'),
-                env('RABBITMQ_PORT', 5672),
-                env('RABBITMQ_USER', 'guest'),
-                env('RABBITMQ_PASSWORD', 'guest'),
-                env('RABBITMQ_VHOST', '/')
-            );
-            $channel = $connection->channel();
-
-            // nama queue = post_mentions
-            $channel->queue_declare('post_mentions', false, true, false, false);
-
-            $msg = new AMQPMessage($payload, ['delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT]);
-            $channel->basic_publish($msg, '', 'post_mentions');
-
-            $channel->close();
-            $connection->close();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Postingan berhasil diperbarui',
-                'post' => $post
-            ], 200);
-
-        } catch (\Exception $e) {
-            // Log error jika koneksi atau pengiriman pesan gagal
-            \Log::error('RabbitMQ Error: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal memperbarui post'
-            ], 500);
-        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Postingan berhasil diperbarui',
+            'post' => $post
+        ], 200);
 
     }
 
