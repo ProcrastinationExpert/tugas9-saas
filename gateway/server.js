@@ -84,6 +84,6 @@ app.use((req, res) => {
   res.status(404).json({ status: false, message: "Endpoint tidak ditemukan" });
 });
 
-app.listen(PORT, () => {
-  console.log(`Gateway berjalan di http://localhost:${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Gateway berjalan di http://0.0.0.0:${PORT}`);
 });
