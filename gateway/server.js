@@ -45,11 +45,29 @@ app.use(
 );
 
 app.use(
+  "/api/profile",
+  createProxyMiddleware({
+    target: coreServiceUrl,
+    changeOrigin: true,
+    pathRewrite: { "^/": "/api/auth/me" },
+  }),
+);
+
+app.use(
   "/api/posts",
   createProxyMiddleware({
     target: coreServiceUrl,
     changeOrigin: true,
-    pathRewrite: { "^/": "/api/posts" },
+    pathRewrite: { "^/": "/api/posts/" },
+  }),
+);
+
+app.use(
+  "/api/users",
+  createProxyMiddleware({
+    target: coreServiceUrl,
+    changeOrigin: true,
+    pathRewrite: { "^/": "/api/users/" },
   }),
 );
 
@@ -58,7 +76,7 @@ app.use(
   createProxyMiddleware({
     target: notificationServiceUrl,
     changeOrigin: true,
-    pathRewrite: { "^/": "/api/notifications" },
+    pathRewrite: { "^/": "/api/notifications/" },
   }),
 );
 

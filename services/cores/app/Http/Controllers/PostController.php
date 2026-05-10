@@ -40,13 +40,6 @@ class PostController extends Controller
             'content' => 'required|string|max:1000',
         ]);
         
-        if(!auth()->check()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized'
-            ], 401);
-        }
-        
         $post = Post::create([
             'user_id' => auth()->id(),
             'content' => $request->content,
@@ -64,7 +57,8 @@ class PostController extends Controller
                 env('RABBITMQ_HOST', '127.0.0.1'),
                 env('RABBITMQ_PORT', 5672),
                 env('RABBITMQ_USER', 'guest'),
-                env('RABBITMQ_PASSWORD', 'guest')
+                env('RABBITMQ_PASSWORD', 'guest'),
+                env('RABBITMQ_VHOST', '/')
             );
             $channel = $connection->channel();
 
@@ -99,6 +93,11 @@ class PostController extends Controller
     public function show(Post $post)
     {
         //
+        return response()->json([
+            'success' => true,
+            'message' => 'Berhasil mengambil data postingan',
+            'data' => $post
+        ], 200);
     }
 
     /**
@@ -115,6 +114,75 @@ class PostController extends Controller
     public function update(Request $request, Post $post)
     {
         //
+        $user = auth()->user();
+
+        if ($post->user_id !== $user->id && $user->role !== 'admin') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses ditolak. Anda tidak memiliki izin untuk mengedit post ini.'
+            ], 403);
+        }
+
+        if ($request->has('content')) {
+            $request->validate([
+                'content' => 'sometimes|required|string|max:1000',
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Content dibutuhkan untuk update post'
+            ], 400);
+        }
+
+        if (!$post) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Post tidak ditemukan'
+            ], 404);
+        }
+
+        $post->update($request->only('content'));
+
+        $payload = json_encode([
+            'post_id'   => $post->id,
+            'sender_id' => auth()->id(),
+            'content'   => $post->content,
+        ]);
+        
+        try {
+            $connection = new AMQPStreamConnection(
+                env('RABBITMQ_HOST', '127.0.0.1'),
+                env('RABBITMQ_PORT', 5672),
+                env('RABBITMQ_USER', 'guest'),
+                env('RABBITMQ_PASSWORD', 'guest'),
+                env('RABBITMQ_VHOST', '/')
+            );
+            $channel = $connection->channel();
+
+            // nama queue = post_mentions
+            $channel->queue_declare('post_mentions', false, true, false, false);
+
+            $msg = new AMQPMessage($payload, ['delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT]);
+            $channel->basic_publish($msg, '', 'post_mentions');
+
+            $channel->close();
+            $connection->close();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Postingan berhasil diperbarui',
+                'post' => $post
+            ], 200);
+
+        } catch (\Exception $e) {
+            // Log error jika koneksi atau pengiriman pesan gagal
+            \Log::error('RabbitMQ Error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memperbarui post'
+            ], 500);
+        }
+
     }
 
     /**
@@ -123,5 +191,20 @@ class PostController extends Controller
     public function destroy(Post $post)
     {
         //
+        $user = auth()->user();
+
+        if ($post->user_id !== $user->id && $user->role !== 'admin') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses ditolak. Anda tidak memiliki izin untuk menghapus post ini.'
+            ], 403);
+        }
+
+        $post->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Postingan berhasil dihapus'
+        ], 200);
     }
 }
