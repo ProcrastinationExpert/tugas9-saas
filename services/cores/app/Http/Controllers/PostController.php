@@ -113,6 +113,20 @@ class PostController extends Controller
     public function update(Request $request, Post $post)
     {
         //
+        // check if there is a post with the given id
+        if (!$post) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Post tidak ditemukan'
+            ], 404);
+        }
+
+        if ($post->user_id !== auth()->id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak bisa mengedit post milik orang lain.'
+            ], 403);
+        }
 
         if ($request->has('content')) {
             $request->validate([
@@ -182,6 +196,13 @@ class PostController extends Controller
     public function destroy(Post $post)
     {
         //
+        if ($post->user_id !== auth()->id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak bisa mengedit post milik orang lain.'
+            ], 403);
+        }
+
         if (!$post) {
             return response()->json([
                 'success' => false,
