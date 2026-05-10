@@ -1,4 +1,4 @@
-# NicePost Backend Service
+# NicePost Backend Service (Sistem Postingan Berbasis Teks)
 
 NicePost adalah platform media sosial sederhana yang mengimplementasikan arsitektur microservices dengan fitur autentikasi JWT, CRUD postingan, dan sistem notifikasi asinkron menggunakan Message Broker.
 
