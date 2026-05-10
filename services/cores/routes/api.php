@@ -24,11 +24,14 @@ Route::group(['prefix' => 'auth'], function ($router) {
 Route::group(['middleware' => 'auth:api'], function ($router) {
     Route::post('posts', [PostController::class, 'store']);
     Route::get('posts', [PostController::class, 'index']);
+    Route::get('posts/{post}', [PostController::class, 'show']);
+    Route::put('posts/{post}', [PostController::class, 'update']);
+    Route::delete('posts/{post}', [PostController::class, 'destroy']);
 });
 
 Route::group(['middleware' => 'auth:api', 'prefix' => 'auth'], function ($router) {
     Route::post('logout', [AuthController::class, 'logout']);
     Route::post('refresh', [AuthController::class, 'refresh']);
-    Route::post('me', [AuthController::class, 'me']);
+    Route::get('me', [AuthController::class, 'me']);
 });
 

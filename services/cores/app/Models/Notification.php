@@ -15,7 +15,7 @@ class Notification extends Model
      */
     public function userSender(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class, 'sender_id');
     }
 
     /**
@@ -23,7 +23,7 @@ class Notification extends Model
      */
     public function userReceiver(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'sender_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     /**
