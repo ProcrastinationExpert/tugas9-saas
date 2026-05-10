@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\UserController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -12,7 +13,7 @@ Route::get('/user', function (Request $request) {
 Route::get('login', function () {
     return response()->json([
         'success' => false,
-        'message' => 'Unauthorized. Kamu belum login atau token tidak valid.'
+        'message' => 'Akses ditolak. Anda belum login atau token tidak valid.'
     ], 401);
 })->name('login');
 
@@ -27,6 +28,9 @@ Route::group(['middleware' => 'auth:api'], function ($router) {
     Route::get('posts/{post}', [PostController::class, 'show']);
     Route::put('posts/{post}', [PostController::class, 'update']);
     Route::delete('posts/{post}', [PostController::class, 'destroy']);
+
+    Route::put('users/{user}/promote', [UserController::class, 'promoteToAdmin'])->middleware('admin');
+    Route::get('users', [UserController::class, 'index'])->middleware('admin');
 });
 
 Route::group(['middleware' => 'auth:api', 'prefix' => 'auth'], function ($router) {

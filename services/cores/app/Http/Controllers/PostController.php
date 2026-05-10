@@ -95,6 +95,7 @@ class PostController extends Controller
         //
         return response()->json([
             'success' => true,
+            'message' => 'Berhasil mengambil data postingan',
             'data' => $post
         ], 200);
     }
@@ -113,18 +114,12 @@ class PostController extends Controller
     public function update(Request $request, Post $post)
     {
         //
-        // check if there is a post with the given id
-        if (!$post) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Post tidak ditemukan'
-            ], 404);
-        }
+        $user = auth()->user();
 
-        if ($post->user_id !== auth()->id()) {
+        if ($post->user_id !== $user->id && $user->role !== 'admin') {
             return response()->json([
                 'success' => false,
-                'message' => 'Anda tidak bisa mengedit post milik orang lain.'
+                'message' => 'Akses ditolak. Anda tidak memiliki izin untuk mengedit post ini.'
             ], 403);
         }
 
@@ -175,7 +170,7 @@ class PostController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Post berhasil diperbarui',
+                'message' => 'Postingan berhasil diperbarui',
                 'post' => $post
             ], 200);
 
@@ -196,25 +191,20 @@ class PostController extends Controller
     public function destroy(Post $post)
     {
         //
-        if ($post->user_id !== auth()->id()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Anda tidak bisa mengedit post milik orang lain.'
-            ], 403);
-        }
+        $user = auth()->user();
 
-        if (!$post) {
+        if ($post->user_id !== $user->id && $user->role !== 'admin') {
             return response()->json([
                 'success' => false,
-                'message' => 'Post tidak ditemukan'
-            ], 404);
+                'message' => 'Akses ditolak. Anda tidak memiliki izin untuk menghapus post ini.'
+            ], 403);
         }
 
         $post->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'Post berhasil dihapus'
+            'message' => 'Postingan berhasil dihapus'
         ], 200);
     }
 }
