@@ -5,7 +5,9 @@ async function getNotifications(req, res) {
     const userId = req.user.sub;
 
     const notifications = await query(
-      "SELECT n.id, n.post_id, n.sender_id, u.username AS sender_username, p.content, n.is_read, n.created_at, n.updated_at " +
+      "SELECT n.id, n.post_id, n.sender_id, u.username AS sender_username, p.content, " +
+        "p.created_at AS post_created_at, p.updated_at AS post_updated_at, " +
+        "n.is_read, n.created_at, n.updated_at " +
         "FROM notifications n LEFT JOIN users u ON n.sender_id = u.id LEFT JOIN posts p ON n.post_id = p.id " +
         "WHERE n.user_id = ? ORDER BY n.created_at DESC",
       [userId],
@@ -18,15 +20,18 @@ async function getNotifications(req, res) {
         return;
       }
 
+      // check if the content is updated
+      const isEdited =
+        notif.post_created_at &&
+        notif.post_updated_at &&
+        new Date(notif.post_updated_at).getTime() >
+          new Date(notif.post_created_at).getTime();
+
       // add ... to notif if the content is too long
-      if (notif.content.length > 50) {
+      if (notif.content.length > 100) {
         notif.content = notif.content.substring(0, 100) + "...";
       }
 
-      // check if the content is updated
-      const isEdited =
-        new Date(notif.post_updated_at).getTime() >
-        new Date(notif.post_created_at).getTime() + 1000;
       if (isEdited) {
         notif.content += " [Diedit]";
       }
